@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
+import com.jpmc.midascore.repository.UserRepository;
+
 
 @SpringBootTest
 @DirtiesContext
@@ -23,6 +25,9 @@ public class TaskFourTests {
     @Autowired
     private FileLoader fileLoader;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     void task_four_verifier() throws InterruptedException {
         userPopulator.populate();
@@ -31,6 +36,10 @@ public class TaskFourTests {
             kafkaProducer.send(transactionLine);
         }
         Thread.sleep(2000);
+        System.out.println("----------------------------------------------------------");
+        System.out.println(
+            "Wilbur's Balance is: " + userRepository.findById(9).getBalance()
+        );
 
 
         logger.info("----------------------------------------------------------");

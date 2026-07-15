@@ -12,8 +12,11 @@ public class TransactionListener {
 
     private final DatabaseConduit databaseConduit;
 
-    public TransactionListener(DatabaseConduit databaseConduit) {
+    private final IncentiveService incentiveService;
+
+    public TransactionListener(DatabaseConduit databaseConduit, IncentiveService incentiveService) {
         this.databaseConduit = databaseConduit;
+        this.incentiveService = incentiveService;
     }
 
     @KafkaListener(topics="${general.kafka-topic}")
@@ -32,13 +35,15 @@ public class TransactionListener {
             return;
         }
 
+        float incentive = incentiveService.getIncentive(transaction);
+
         sender.setBalance(sender.getBalance() - transaction.getAmount());
-        recipient.setBalance(recipient.getBalance() + transaction.getAmount());
+        recipient.setBalance(recipient.getBalance() + transaction.getAmount() + incentive);
 
         databaseConduit.save(sender);
         databaseConduit.save(recipient);
 
-        TransactionRecord transactionRecord = new TransactionRecord(sender, recipient, transaction.getAmount());
+        TransactionRecord transactionRecord = new TransactionRecord(sender, recipient, transaction.getAmount(), incentive);
 
         databaseConduit.saveTransaction(transactionRecord);
 
